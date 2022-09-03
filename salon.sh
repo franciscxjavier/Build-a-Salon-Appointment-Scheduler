@@ -23,7 +23,6 @@ MAIN_MENU() {
 }
 
 NEW_APPOINTMENT(){
-  echo -e "\n~~~~~ New Appointment ~~~~~"
   #get available services
   AVAILABLE_SERVICES=$($PSQL "select service_id, INITCAP(name) as name from services;")
   
@@ -50,12 +49,13 @@ NEW_APPOINTMENT(){
     # send to main menu
     NEW_APPOINTMENT "That is not a valid service."
   else
-    # get bike availability
-    SERVICE_EXISTS=$($PSQL "select name from services where service_id=$SERVICE_ID_SELECTED")
+    # get service availability
+    SERVICE_AVAILABILITY=$($PSQL "select name from services where service_id = $SERVICE_ID_SELECTED AND available = true")
     
-    #if service does not exist, return to main menu
-    if [[ -z $SERVICE_EXISTS ]] 
+    #if service does not exist
+    if [[ -z $SERVICE_AVAILABILITY ]] 
     then
+      #display services menu
       NEW_APPOINTMENT "That service does not exist."
     else
       #if service exists ask for phone
@@ -63,7 +63,7 @@ NEW_APPOINTMENT(){
       read CUSTOMER_PHONE
 
       #check if customer exists
-      CUSTOMER_NAME=$($PSQL "select name from customers where phone='$CUSTOMER_PHONE'")
+      CUSTOMER_NAME=$($PSQL "SELECT name FROM customers WHERE phone = '$CUSTOMER_PHONE'")
 
       #if phone number does not exist, create customer
       if [[ -z $CUSTOMER_NAME ]]
@@ -80,7 +80,7 @@ NEW_APPOINTMENT(){
       CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone='$CUSTOMER_PHONE'")
 
       #get appointment time
-      echo -e "\nPlease enter the time you'd like to get your $SERVICE_EXISTS done:"
+      echo -e "\nPlease enter the time you'd like to get your $SERVICE_AVAILABILITY done:"
       read SERVICE_TIME
 
       # insert appointment
@@ -89,19 +89,74 @@ NEW_APPOINTMENT(){
       #check if appoint was created successfully
       if [[ -z $INSERT_APPOINTMENT_RESULT ]]
       then
-        # send to main menu
+        # send to main menu, display error
         MAIN_MENU "We are sorry, it seems that there was an error processing your request. Please try again."
       else
         # send to main menu
-        MAIN_MENU "I have put you down for a $SERVICE_EXISTS at $SERVICE_TIME, $CUSTOMER_NAME."
+        MAIN_MENU "I have put you down for a $SERVICE_AVAILABILITY at $SERVICE_TIME, $CUSTOMER_NAME."
       fi
     fi
   fi
 fi
 }
 
-CANCEL_APPOINTMENT(){
-  echo Cancel Appointment
+CANCEL_APPOINTMENT() {
+  # get customer info
+  echo -e "\nWhat's your phone number?"
+  read CUSTOMER_PHONE
+
+  CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$CUSTOMER_PHONE'")
+
+  # if not found
+  if [[ -z $CUSTOMER_ID  ]]
+  then
+    # send to main menu
+    MAIN_MENU "I could not find a record for that phone number."
+  else
+    # get customer's appointments
+    CUSTOMER_APPOINTMENTS=$($PSQL "select appointment_id, s.name, time from appointments inner join customers c using(customer_id) inner join services s using(service_id) where customer_id = $CUSTOMER_ID  and cancelled = 'f'")
+
+    # if no appointments
+    if [[ -z $CUSTOMER_APPOINTMENTS  ]]
+    then
+      # send to main menu
+      MAIN_MENU "You do not have any appointments."
+    else
+      # display appointments
+      echo -e "\nHere are your appointments:"
+      echo "$CUSTOMER_APPOINTMENTS" | while read APPOINTMENT_ID BAR SERVICE_NAME BAR SERVICE_TIME BAR CANCELLED
+      do
+        echo "Appointment #$APPOINTMENT_ID for $SERVICE_NAME at $SERVICE_TIME."
+      done
+
+      # ask for appointment to cancel
+      echo -e "\nWhich one would you like to cancel?"
+      read APPOINTMENT_ID_TO_CANCEL
+
+      # if not a number
+      if [[ ! $APPOINTMENT_ID_TO_CANCEL =~ ^[0-9]+$ ]]
+      then
+        # send to main menu
+        MAIN_MENU "That is not a valid appointment number."
+      else
+        # check if input exists
+        APPOINTMENT_ID=$($PSQL "SELECT appointment_id FROM appointments WHERE appointment_id = $APPOINTMENT_ID_TO_CANCEL")
+
+        #if input does not exist
+        if [[ -z $APPOINTMENT_ID ]]
+        then
+          # send to main menu
+          MAIN_MENU "We could not find an appointment with the information you entered."
+        else
+          # update cancelled status
+          RETURN_APPOINTMENT_RESULT=$($PSQL "UPDATE appointments SET cancelled = 't' WHERE appointment_id = $APPOINTMENT_ID")
+                    
+          # send to main menu
+          MAIN_MENU "Your appointment has been cancelled."
+        fi
+      fi
+    fi
+  fi
 }
 
 EXIT(){
