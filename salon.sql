@@ -181,6 +181,7 @@ INSERT INTO public.appointments VALUES (4, 1, 2, '11:00', true);
 INSERT INTO public.appointments VALUES (6, 1, 1, '7:00', false);
 INSERT INTO public.appointments VALUES (2, 3, 1, '12:00', true);
 INSERT INTO public.appointments VALUES (7, 4, 2, '13:30', false);
+INSERT INTO public.appointments VALUES (8, 5, 3, '11:11', true);
 
 
 --
@@ -190,6 +191,7 @@ INSERT INTO public.appointments VALUES (7, 4, 2, '13:30', false);
 INSERT INTO public.customers VALUES (1, '555-555-5555', 'Fabio');
 INSERT INTO public.customers VALUES (3, '666-666-6666', 'Javier');
 INSERT INTO public.customers VALUES (4, '630-644-4928', 'Gilda');
+INSERT INTO public.customers VALUES (5, '222-222-2222', 'Francisco');
 
 
 --
@@ -205,14 +207,14 @@ INSERT INTO public.services VALUES (3, 'pedicure', true);
 -- Name: appointments_appointment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: freecodecamp
 --
 
-SELECT pg_catalog.setval('public.appointments_appointment_id_seq', 7, true);
+SELECT pg_catalog.setval('public.appointments_appointment_id_seq', 8, true);
 
 
 --
 -- Name: customers_customer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: freecodecamp
 --
 
-SELECT pg_catalog.setval('public.customers_customer_id_seq', 4, true);
+SELECT pg_catalog.setval('public.customers_customer_id_seq', 5, true);
 
 
 --
@@ -273,4 +275,3 @@ ALTER TABLE ONLY public.appointments
 --
 -- PostgreSQL database dump complete
 --
-
