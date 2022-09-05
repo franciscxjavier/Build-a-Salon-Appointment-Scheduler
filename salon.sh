@@ -49,8 +49,8 @@ NEW_APPOINTMENT(){
     # send to main menu
     NEW_APPOINTMENT "That is not a valid service."
   else
-    # get service availability
-    SERVICE_AVAILABILITY=$($PSQL "select name from services where service_id = $SERVICE_ID_SELECTED AND available = true")
+    # get bike availability
+    SERVICE_AVAILABILITY=$($PSQL "select name from services where service_id=$SERVICE_ID_SELECTED AND available = true")
     
     #if service does not exist
     if [[ -z $SERVICE_AVAILABILITY ]] 
@@ -89,7 +89,7 @@ NEW_APPOINTMENT(){
       #check if appoint was created successfully
       if [[ -z $INSERT_APPOINTMENT_RESULT ]]
       then
-        # send to main menu, display error
+        # send to main menu
         MAIN_MENU "We are sorry, it seems that there was an error processing your request. Please try again."
       else
         # send to main menu
@@ -113,23 +113,23 @@ CANCEL_APPOINTMENT() {
     # send to main menu
     MAIN_MENU "I could not find a record for that phone number."
   else
-    # get customer's appointments
-    CUSTOMER_APPOINTMENTS=$($PSQL "select appointment_id, s.name, time from appointments inner join customers c using(customer_id) inner join services s using(service_id) where customer_id = $CUSTOMER_ID  and cancelled = 'f'")
+    # get customer's rentals
+    CUSTOMER_APPOINTMENTS=$($PSQL "select appointment_id, s.name, time from appointments inner join customers c using(customer_id) inner join services s using(service_id) where customer_id = $CUSTOMER_ID  and cancelled='f'")
 
-    # if no appointments
+    # if no rentals
     if [[ -z $CUSTOMER_APPOINTMENTS  ]]
     then
       # send to main menu
       MAIN_MENU "You do not have any appointments."
     else
-      # display appointments
+      # display rented bikes
       echo -e "\nHere are your appointments:"
       echo "$CUSTOMER_APPOINTMENTS" | while read APPOINTMENT_ID BAR SERVICE_NAME BAR SERVICE_TIME BAR CANCELLED
       do
         echo "Appointment #$APPOINTMENT_ID for $SERVICE_NAME at $SERVICE_TIME."
       done
 
-      # ask for appointment to cancel
+      # ask for bike to return
       echo -e "\nWhich one would you like to cancel?"
       read APPOINTMENT_ID_TO_CANCEL
 
@@ -139,16 +139,16 @@ CANCEL_APPOINTMENT() {
         # send to main menu
         MAIN_MENU "That is not a valid appointment number."
       else
-        # check if input exists
+        # check if input is not cancelled
         APPOINTMENT_ID=$($PSQL "SELECT appointment_id FROM appointments WHERE appointment_id = $APPOINTMENT_ID_TO_CANCEL")
 
-        #if input does not exist
+        # if input not rented
         if [[ -z $APPOINTMENT_ID ]]
         then
           # send to main menu
           MAIN_MENU "We could not find an appointment with the information you entered."
         else
-          # update cancelled status
+          # update date_returned
           RETURN_APPOINTMENT_RESULT=$($PSQL "UPDATE appointments SET cancelled = 't' WHERE appointment_id = $APPOINTMENT_ID")
                     
           # send to main menu
