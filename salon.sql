@@ -51,8 +51,7 @@ CREATE TABLE public.appointments (
     appointment_id integer NOT NULL,
     customer_id integer,
     service_id integer,
-    "time" character varying(5),
-    cancelled boolean DEFAULT false
+    "time" character varying
 );
 
 
@@ -270,4 +269,3 @@ ALTER TABLE ONLY public.appointments
 --
 -- PostgreSQL database dump complete
 --
-
